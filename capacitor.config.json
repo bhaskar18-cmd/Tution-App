@@ -1,0 +1,6 @@
+{
+  "appId": "com.bhaskar.tutortrack",
+  "appName": "TutorTrack",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
