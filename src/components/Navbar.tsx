@@ -28,8 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange, setting
       <header className="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xl shadow-inner">
-              TT
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center shadow-inner border border-slate-700">
+              <img src="/logo.png" alt="TutorTrack Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight">{settings?.instituteName || 'TutorTrack'}</h1>

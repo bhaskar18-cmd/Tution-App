@@ -41,6 +41,9 @@ jobs:
       - name: Add Capacitor Android Platform & Sync
         run: bun x cap add android || bun x cap sync android
 
+      - name: Generate Android App Icons
+        run: bun run icons
+
       - name: Build Android Debug APK
         working-directory: ./android
         run: ./gradlew assembleDebug
