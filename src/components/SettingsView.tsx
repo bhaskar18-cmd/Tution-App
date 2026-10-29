@@ -52,12 +52,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleExportJson = async () => {
     try {
-      const [students, attendance, feeRecords, payments, settingsList] = await Promise.all([
+      const [students, attendance, feeRecords, payments, settingsList, batches] = await Promise.all([
         db.students.toArray(),
         db.attendance.toArray(),
         db.feeRecords.toArray(),
         db.payments.toArray(),
-        db.settings.toArray()
+        db.settings.toArray(),
+        db.batches.toArray()
       ]);
 
       const backupData = {
@@ -66,6 +67,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         appName: 'TutorTrack',
         data: {
           students,
+          batches,
           attendance,
           feeRecords,
           payments,
@@ -99,14 +101,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         }
 
         if (window.confirm('Are you sure you want to restore this backup? This will replace current local records.')) {
-          await db.transaction('rw', db.students, db.attendance, db.feeRecords, db.payments, db.settings, async () => {
+          await db.transaction('rw', db.students, db.batches, db.attendance, db.feeRecords, db.payments, db.settings, async () => {
             await db.students.clear();
+            await db.batches.clear();
             await db.attendance.clear();
             await db.feeRecords.clear();
             await db.payments.clear();
             await db.settings.clear();
 
             if (json.data.students) await db.students.bulkAdd(json.data.students);
+            if (json.data.batches) await db.batches.bulkAdd(json.data.batches);
             if (json.data.attendance) await db.attendance.bulkAdd(json.data.attendance);
             if (json.data.feeRecords) await db.feeRecords.bulkAdd(json.data.feeRecords);
             if (json.data.payments) await db.payments.bulkAdd(json.data.payments);
@@ -125,9 +129,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleClearAllData = async () => {
-    if (window.confirm('WARNING: This will permanently delete all students, attendance, fee records, and payment history from this device! Are you absolutely sure?')) {
+    if (window.confirm('WARNING: This will permanently delete all students, batches, attendance, fee records, and payment history from this device! Are you absolutely sure?')) {
       if (window.confirm('Final confirmation: Delete all TutorTrack local data?')) {
-        await db.delete();
+        try {
+          db.close();
+          // Explicitly clear all Dexie tables first
+          await db.transaction('rw', db.students, db.batches, db.attendance, db.feeRecords, db.payments, db.settings, async () => {
+            await db.students.clear();
+            await db.batches.clear();
+            await db.attendance.clear();
+            await db.feeRecords.clear();
+            await db.payments.clear();
+            await db.settings.clear();
+          });
+
+          // Delete underlying IndexedDB database
+          await new Promise((resolve) => {
+            const req = indexedDB.deleteDatabase('TutorTrackDatabase');
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => resolve(true);
+            req.onblocked = () => resolve(true);
+          });
+
+          // Clear local/session storage
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          alert('All application data has been cleared successfully.');
+        } catch (err) {
+          console.error('Error clearing data:', err);
+          alert('Error clearing data. Please try again.');
+        }
         window.location.reload();
       }
     }

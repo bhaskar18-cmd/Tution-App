@@ -71,8 +71,12 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
     }
   }
 
-  const handleOpenAddModal = (stu?: Student) => {
+  const handleOpenAddModal = async (stu?: Student) => {
     setFormError('');
+    const settings = await db.settings.get('settings');
+    const defFee = settings?.defaultMonthlyFee ?? 1500;
+    const defDueDay = settings?.defaultDueDay ?? 10;
+
     if (stu) {
       setSelectedStudent(stu);
       setName(stu.name);
@@ -94,8 +98,8 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
       setSchoolName('');
       setPhoneNumber('');
       setWhatsappNumber('');
-      setMonthlyFee(1500);
-      setDueDay(10);
+      setMonthlyFee(defFee);
+      setDueDay(defDueDay);
       setEnrollmentDate(new Date().toISOString().split('T')[0]);
       setBatchId(batches.find(b => b.active)?.id || batches[0]?.id || '');
       setNotes('');
